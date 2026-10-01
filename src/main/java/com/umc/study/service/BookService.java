@@ -20,6 +20,11 @@ public class BookService {
         return bookRepository.findAll();
     }
 
+    public List<Map<String, Object>> getBooksByCategory(Long categoryId) {
+        // 카테고리 ID를 창고지기에게 넘겨 해당 카테고리의 도서만 받아옵니다.
+        return bookRepository.findByCategoryId(categoryId);
+    }
+
     // BookService.java에 추가
     public void createBook(Map<String, Object> body){
         bookRepository.save(body);

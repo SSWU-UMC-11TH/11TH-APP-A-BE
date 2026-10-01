@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +26,12 @@ public class BookController {
     @GetMapping
     public List<Map<String, Object>> getBooks() {
         return bookService.getAllBooks();
+    }
+
+    // 4. GET /books/category/{categoryId} : 경로의 {categoryId} 값을 Path Variable로 받습니다.
+    @GetMapping("/category/{categoryId}")
+    public List<Map<String, Object>> getBooksByCategory(@PathVariable Long categoryId) {
+        return bookService.getBooksByCategory(categoryId);
     }
 
     @PostMapping

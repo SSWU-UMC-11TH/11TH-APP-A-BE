@@ -23,6 +23,14 @@ public class BookRepository {
         return jdbcTemplate.queryForList(sql);
     }
 
+    public List<Map<String, Object>> findByCategoryId(Long categoryId) {
+        // WHERE 조건절로 특정 카테고리에 속한 책만 골라냅니다.
+        // ? 자리에 categoryId가 바인딩되므로 SQL Injection 걱정 없이 안전합니다.
+        String sql = "SELECT * FROM book WHERE category_id = ?";
+
+        return jdbcTemplate.queryForList(sql, categoryId);
+    }
+
     public void save(Map<String, Object> body){
         // book_id는 AUTO_INCREMENT이므로 생략, is_available은 기본 true로 삽입
         String sql = "INSERT INTO book (category_id, title, description, is_available) VALUES (?, ?, ?, true)";
