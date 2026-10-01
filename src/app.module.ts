@@ -6,6 +6,9 @@ import { AppService } from './app.service';
 import { BookController } from './book.controller';
 import { BookService } from './book.service';
 import { BookRepository } from './book.repository';
+import { RentalController } from './rental.controller';
+import { RentalService } from './rental.service';
+import { RentalRepository } from './rental.repository';
 
 @Module({
   imports: [
@@ -17,12 +20,15 @@ import { BookRepository } from './book.repository';
   controllers: [
     AppController,
     BookController,
+    RentalController, 
   ],
   providers: [
     ...databaseProviders, // 1. DB 커넥션 풀을 부품으로 등록
     AppService,
     BookService, 
     BookRepository,
+    RentalService,
+    RentalRepository,
   ],
     exports: [...databaseProviders], // 2. 다른 모듈/서비스에서도 쓸 수 있게 공개
 })
