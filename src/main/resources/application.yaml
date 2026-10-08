@@ -7,3 +7,15 @@ spring:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PW}
+
+  jpa:
+    hibernate:
+      # 이미 만들어 둔 book, category 테이블을 그대로 쓰므로 스키마를 건드리지 않고
+      # 엔티티 매핑과 실제 테이블 구조가 일치하는지만 검증합니다.
+      ddl-auto: validate
+    # 영속성 컨텍스트를 Controller까지 열어두지 않고 Service(@Transactional) 범위로 제한합니다.
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
