@@ -2,7 +2,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { BookService } from './book.service';
 import { Body, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { Param } from '@nestjs/common';
+import { Param, ParseIntPipe } from '@nestjs/common';
 import { BookResponseDto } from './book-response.dto';
 import { CreateBookDto } from './create-book.dto';
 
@@ -23,7 +23,10 @@ export class BookController {
     return await this.bookService.createBook(dto);
   }
   @Get('category/:categoryId')
-  async getBooksByCategory(@Param('categoryId') categoryId: string): Promise<any> {
+  async getBooksByCategory(
+    // 숫자가 아닌 값(/books/category/abc)은 400으로 거절
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+  ): Promise<BookResponseDto[]> {
     return await this.bookService.getBooksByCategory(categoryId);
   }
 

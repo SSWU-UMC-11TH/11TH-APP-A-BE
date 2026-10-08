@@ -8,7 +8,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BookController } from './book.controller';
 import { BookService } from './book.service';
-import { BookRepository } from './book.repository';
 import { RentalController } from './rental.controller';
 import { RentalService } from './rental.service';
 import { RentalRepository } from './rental.repository';
@@ -45,8 +44,7 @@ import { RentalRepository } from './rental.repository';
   providers: [
     ...databaseProviders, // 1. DB 커넥션 풀을 부품으로 등록
     AppService,
-    BookService, 
-    BookRepository,
+    BookService,
     RentalService,
     RentalRepository,
   ],
