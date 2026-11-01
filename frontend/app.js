@@ -24,7 +24,7 @@ function logApi(url, status, body) {
   li.className = "s" + String(status)[0];
   const time = new Date().toLocaleTimeString("ko-KR");
   li.textContent = `[${time}] GET ${url} → ${status || "NETWORK ERROR"} ${JSON.stringify(body)}`;
-  document.getElementById("api-log").prepend(li);
+  document.getElementById("api-log").append(li); // 호출한 순서대로 아래로 쌓입니다.
 }
 
 function setMsg(el, text, type) {
