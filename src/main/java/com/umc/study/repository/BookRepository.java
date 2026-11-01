@@ -1,46 +1,19 @@
 // src/main/java/.../repository/BookRepository.java
 package com.umc.study.repository;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import com.umc.study.domain.Book;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Map;
 
-@Repository // 스프링 컨테이너에 "나 창고지기 부품이야!"라고 등록
-@RequiredArgsConstructor
-public class BookRepository {
+// 3주차: JdbcTemplate + SQL 문자열을 직접 작성한 클래스
+// 4주차: JpaRepository를 상속한 인터페이스. 구현체는 Spring Data JPA가 런타임에 만들어 줍니다.
+public interface BookRepository extends JpaRepository<Book, Long> {
 
-    // 2단계에서 준비된 스프링의 DB 통신 도구(JdbcTemplate) 주입
-    private final JdbcTemplate jdbcTemplate;
+    // 메서드 이름 규칙(Query Method)만으로 "SELECT ... FROM book ORDER BY book_id DESC"가 생성됩니다.
+    List<Book> findAllByOrderByBookIdDesc();
 
-    public List<Map<String, Object>> findAll() {
-        String sql = "SELECT * FROM book";
-
-        // 쿼리를 실행하고 결과를 List<Map> 형태의 날것 데이터로 긁어옵니다.
-        // Map의 Key는 '컬럼명(title)', Value는 '실제 데이터(달빛 도서관)'가 됩니다.
-        return jdbcTemplate.queryForList(sql);
-    }
-
-    public List<Map<String, Object>> findByCategoryId(Long categoryId) {
-        // WHERE 조건절로 특정 카테고리에 속한 책만 골라냅니다.
-        // ? 자리에 categoryId가 바인딩되므로 SQL Injection 걱정 없이 안전합니다.
-        String sql = "SELECT * FROM book WHERE category_id = ?";
-
-        return jdbcTemplate.queryForList(sql, categoryId);
-    }
-
-    public void save(Map<String, Object> body){
-        // book_id는 AUTO_INCREMENT이므로 생략, is_available은 기본 true로 삽입
-        String sql = "INSERT INTO book (category_id, title, description, is_available) VALUES (?, ?, ?, true)";
-
-        // SQL 뒤에 파라미터를 차례대로 넘겨주면 ? 자리에 순서대로 안전하게 바인딩됩니다.
-        jdbcTemplate.update(
-                sql,
-                body.get("categoryId"),
-                body.get("title"),
-                body.get("description")
-        );
-    }
+    // 3주차의 GET /books/category/{categoryId}를 유지하기 위한 메서드.
+    // Book.category.categoryId 경로를 따라가 "WHERE category_id = ?" 조건이 생성됩니다.
+    List<Book> findAllByCategoryCategoryIdOrderByBookIdDesc(Long categoryId);
 }

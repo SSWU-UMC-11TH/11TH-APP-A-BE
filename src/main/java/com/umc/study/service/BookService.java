@@ -1,32 +1,54 @@
 // src/main/java/.../service/BookService.java
 package com.umc.study.service;
 
+import com.umc.study.domain.Book;
+import com.umc.study.domain.Category;
+import com.umc.study.dto.BookResponse;
+import com.umc.study.dto.CreateBookRequest;
+import com.umc.study.exception.CategoryNotFoundException;
 import com.umc.study.repository.BookRepository;
+import com.umc.study.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
-@Service // 비즈니스 로직을 수행하는 메인 셰프 계층
+@Service
 @RequiredArgsConstructor
 public class BookService {
 
-    // 창고지기(Repository)를 생성자 주입으로 데려옵니다.
     private final BookRepository bookRepository;
+    private final CategoryRepository categoryRepository;
 
-    public List<Map<String, Object>> getAllBooks() {
-        // 지금은 별도 가공 없이 창고지기가 가져온 도서 목록을 그대로 반환합니다.
-        return bookRepository.findAll();
+    // readOnly = true: 조회 전용 트랜잭션. 변경 감지(dirty checking)를 생략해 성능에 이점이 있고,
+    // LAZY 로딩된 category.name을 DTO로 변환하는 동안 영속성 컨텍스트가 열려 있도록 보장합니다.
+    @Transactional(readOnly = true)
+    public List<BookResponse> getBooks() {
+        return bookRepository.findAllByOrderByBookIdDesc().stream()
+                .map(BookResponse::from) // Entity → Response DTO
+                .toList();
     }
 
-    public List<Map<String, Object>> getBooksByCategory(Long categoryId) {
-        // 카테고리 ID를 창고지기에게 넘겨 해당 카테고리의 도서만 받아옵니다.
-        return bookRepository.findByCategoryId(categoryId);
+    @Transactional(readOnly = true)
+    public List<BookResponse> getBooksByCategory(Long categoryId) {
+        return bookRepository.findAllByCategoryCategoryIdOrderByBookIdDesc(categoryId).stream()
+                .map(BookResponse::from)
+                .toList();
     }
 
-    // BookService.java에 추가
-    public void createBook(Map<String, Object> body){
-        bookRepository.save(body);
+    @Transactional
+    public BookResponse createBook(CreateBookRequest request) {
+        // 1) FK로 넣을 카테고리가 실제로 존재하는지 먼저 확인합니다.
+        //    없으면 DB 제약 조건 오류(500)가 나기 전에 의미 있는 예외(404)로 바꿔 던집니다.
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new CategoryNotFoundException(request.categoryId()));
+
+        // 2) 엔티티를 만들고 저장합니다. INSERT SQL은 JPA가 생성합니다.
+        Book book = new Book(category, request.title(), request.description());
+        Book saved = bookRepository.save(book);
+
+        // 3) 저장된 엔티티(book_id가 채워진 상태)를 응답 DTO로 변환합니다.
+        return BookResponse.from(saved);
     }
 }
