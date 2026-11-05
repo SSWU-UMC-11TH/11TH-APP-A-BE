@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MovieLog — 영화 평점 서비스</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">🎬 MovieLog</div>
+    <nav class="tabs">
+      <button class="tab active" data-view="signup">회원가입</button>
+      <button class="tab" data-view="ratings">내 평점</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 회원가입 화면: 닉네임/이메일 중복 체크 API 연결 -->
+    <section id="view-signup" class="view active">
+      <h1>회원가입</h1>
+      <p class="sub">닉네임과 이메일은 다른 회원과 겹칠 수 없어요. 중복 확인을 먼저 해주세요.</p>
+
+      <form id="signup-form" class="card" novalidate>
+        <label for="email">이메일</label>
+        <div class="row">
+          <input id="email" type="email" placeholder="example@umc.com" autocomplete="off" />
+          <button type="button" id="email-check" class="btn-outline">중복 확인</button>
+        </div>
+        <p id="email-msg" class="msg"></p>
+
+        <label for="nickname">닉네임</label>
+        <div class="row">
+          <input id="nickname" type="text" placeholder="2~12자" autocomplete="off" />
+          <button type="button" id="nickname-check" class="btn-outline">중복 확인</button>
+        </div>
+        <p id="nickname-msg" class="msg"></p>
+
+        <label for="password">비밀번호</label>
+        <input id="password" type="password" placeholder="6주차 회원가입 API에서 연결 예정" disabled />
+
+        <button type="submit" id="signup-submit" class="btn-primary" disabled>가입하기 (6주차 예정)</button>
+      </form>
+    </section>
+
+    <!-- 내 평점 화면: 유저별 평점 조회 API 연결 -->
+    <section id="view-ratings" class="view">
+      <h1>내 평점</h1>
+      <p class="sub">로그인은 7주차에 붙일 예정이라, 지금은 회원 번호로 조회합니다.</p>
+
+      <form id="ratings-form" class="card row">
+        <input id="member-id" type="number" min="1" value="1" placeholder="회원 번호" />
+        <button type="submit" class="btn-primary">조회</button>
+      </form>
+
+      <p id="ratings-summary" class="msg"></p>
+      <ul id="ratings-list" class="ratings"></ul>
+    </section>
+  </main>
+
+  <footer class="api-log">
+    <div class="api-log-title">API 호출 기록 <span>(Base URL: <code id="base-url"></code>)</span></div>
+    <ol id="api-log"></ol>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
