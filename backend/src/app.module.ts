@@ -1,10 +1,30 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Member } from './member.entity';
+import { Rating } from './rating.entity';
+import { MovieController } from './movie.controller';
+import { MovieService } from './movie.service';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql' as const,
+        host: config.getOrThrow<string>('DB_HOST'),
+        port: Number(config.getOrThrow<string>('DB_PORT')),
+        username: config.getOrThrow<string>('DB_USER'),
+        password: config.getOrThrow<string>('DB_PASSWORD'),
+        database: config.getOrThrow<string>('DB_NAME'),
+        entities: [Member, Rating],
+        synchronize: false,
+      }),
+    }),
+    TypeOrmModule.forFeature([Member, Rating]),
+  ],
+  controllers: [MovieController],
+  providers: [MovieService],
 })
 export class AppModule {}
