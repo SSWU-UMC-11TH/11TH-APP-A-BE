@@ -1,3 +1,5 @@
+import { MemberWriteService } from './member-write.service';
+import { MemberWriteController } from './member-write.controller';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -24,7 +26,7 @@ import { MovieService } from './movie.service';
     }),
     TypeOrmModule.forFeature([Member, Rating]),
   ],
-  controllers: [MovieController],
-  providers: [MovieService],
+  controllers: [MovieController, MemberWriteController],
+  providers: [MovieService, MemberWriteService],
 })
 export class AppModule {}
