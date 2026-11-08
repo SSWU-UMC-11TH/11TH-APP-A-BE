@@ -1,3 +1,5 @@
+import { RatingWriteService } from './rating-write.service';
+import { RatingWriteController } from './rating-write.controller';
 import { MemberWriteService } from './member-write.service';
 import { MemberWriteController } from './member-write.controller';
 import { Module } from '@nestjs/common';
@@ -26,7 +28,7 @@ import { MovieService } from './movie.service';
     }),
     TypeOrmModule.forFeature([Member, Rating]),
   ],
-  controllers: [MovieController, MemberWriteController],
-  providers: [MovieService, MemberWriteService],
+  controllers: [MovieController, MemberWriteController, RatingWriteController],
+  providers: [MovieService, MemberWriteService, RatingWriteService],
 })
 export class AppModule {}
