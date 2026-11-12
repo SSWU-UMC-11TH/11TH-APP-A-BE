@@ -1,13 +1,17 @@
 package com.umc.movie.service;
 
+import com.umc.movie.dto.CreateRatingRequest;
 import com.umc.movie.dto.RatingResponse;
-import com.umc.movie.repository.RatingRepository;
+import com.umc.movie.dto.UpdateRatingRequest;
+import com.umc.movie.entity.Member;
+import com.umc.movie.entity.Rating;
+import com.umc.movie.exception.ApiException;
 import com.umc.movie.repository.MemberRepository;
+import com.umc.movie.repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -18,16 +22,69 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final MemberRepository memberRepository;
 
+    // 5주차 유저별 평점 조회 (공개 API)
     @Transactional(readOnly = true)
     public List<RatingResponse> getRatingsByMember(Long memberId) {
         if (!memberRepository.existsById(memberId)) {
-            // @RestControllerAdvice로 예외를 한 곳에서 다루는 방법은 6주차에 배웁니다.
-            // 지금은 Spring이 기본 제공하는 ResponseStatusException으로 404를 바로 응답합니다.
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다.");
+            throw new ApiException(HttpStatus.NOT_FOUND, "MEMBER404_1", "해당 회원을 찾을 수 없습니다.");
         }
 
         return ratingRepository.findByMember_MemberIdOrderByRatingIdDesc(memberId).stream()
                 .map(RatingResponse::from)
                 .toList();
+    }
+
+    // 인자 순서는 "누가(memberId)"가 항상 맨 앞에 오도록 통일했습니다
+    @Transactional
+    public RatingResponse create(Long memberId, CreateRatingRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MEMBER404_1",
+                        "해당 회원을 찾을 수 없습니다."));
+
+        // (member_id, movie_id) 복합 UNIQUE 제약이 있지만, 우리 메시지로 응답하기 위해 먼저 확인합니다
+        if (ratingRepository.existsByMember_MemberIdAndMovieId(memberId, request.movieId())) {
+            throw new ApiException(HttpStatus.CONFLICT, "RATING409_1", "이미 이 영화에 평점을 남기셨습니다.");
+        }
+
+        Rating rating = Rating.builder()
+                .member(member)
+                .movieId(request.movieId())
+                .score(request.score())
+                .comment(request.comment())
+                .build();
+
+        return RatingResponse.from(ratingRepository.save(rating));
+    }
+
+    @Transactional
+    public RatingResponse update(Long memberId, Long ratingId, UpdateRatingRequest request) {
+        Rating rating = findOwnedRating(memberId, ratingId);
+
+        rating.update(request.score(), request.comment());
+        ratingRepository.saveAndFlush(rating); // updatedAt이 응답에 반영되도록 즉시 flush
+
+        return RatingResponse.from(rating);
+    }
+
+    @Transactional
+    public void delete(Long memberId, Long ratingId) {
+        ratingRepository.delete(findOwnedRating(memberId, ratingId));
+    }
+
+    /**
+     * 평점을 찾고(없으면 404), 그 평점이 요청자의 것인지 확인합니다(아니면 403).
+     * 인증은 인터셉터가, 인가(소유권)는 여기서 담당합니다.
+     */
+    private Rating findOwnedRating(Long memberId, Long ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "RATING404_1",
+                        "해당 평점을 찾을 수 없습니다."));
+
+        if (!rating.getMember().getMemberId().equals(memberId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "RATING403_1",
+                    "본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.");
+        }
+
+        return rating;
     }
 }
