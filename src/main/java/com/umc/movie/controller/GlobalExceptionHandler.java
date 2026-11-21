@@ -1,6 +1,7 @@
 package com.umc.movie.controller;
 
 import com.umc.movie.dto.ApiResponse;
+import com.umc.movie.exception.ApiException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -76,5 +77,12 @@ public class GlobalExceptionHandler {
         int status = exception.getStatusCode().value();
         return ResponseEntity.status(status)
                 .body(ApiResponse.failure("COMMON" + status, exception.getReason()));
+    }
+
+    // 우리가 직접 던진 예외 → 예외가 들고 온 상태 코드와 code 문자열을 그대로 사용
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException exception) {
+        return ResponseEntity.status(exception.getStatus())
+                .body(ApiResponse.failure(exception.getCode(), exception.getMessage()));
     }
 }
